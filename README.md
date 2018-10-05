@@ -2,8 +2,8 @@
 JavaScript facade for BetaKiller WAMP transport
 
 # Install
-- Install `npm`
-- Install `yarn`
+- [Install](https://nodejs.org/en/download/package-manager) `npm`
+- [Install](https://yarnpkg.com/en/docs/install) `yarn`
 - Clone repository
 - Open repository directory
 - Run `npm install`
