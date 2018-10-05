@@ -35,6 +35,7 @@ gulp.task('compressJs', ['build'], () => {
     .pipe(gulp.dest(paths.lib));
 });
 
+// rial time executing
 gulp.task('watch', () => {
   gulp.watch(paths.srcJs, ['main']);
 });
