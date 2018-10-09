@@ -1,11 +1,11 @@
 'use strict';
 
-import WampCookieSession from './WampCookieSession';
-import WampAuthChallenge from './WampAuthChallenge';
-import WampConnection from './WampConnection';
-import WampRequest from './WampRequest';
+import BetakillerWampCookieSession from './BetakillerWampCookieSession';
+import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
+import BetakillerWampConnection from './BetakillerWampConnection';
+import BetakillerWampRequest from './BetakillerWampRequest';
 
-export default class WampFacade {
+export default class BetakillerWampFacade {
   constructor(debug = false) {
     this.debug               = debug;
     this.connection          = undefined;
@@ -58,7 +58,7 @@ export default class WampFacade {
       `Authentication challenge:`, wampAuthChallenge
     );
     try {
-      this.connection = new WampConnection(options.url, options.realm, wampAuthChallenge);
+      this.connection = new BetakillerWampConnection(options.url, options.realm, wampAuthChallenge);
       this.connection
         .onOpen((connection) => this._onConnectResolve(connection))
         .onClose((reason, details) => this._onConnectReject(reason, details))
@@ -80,7 +80,7 @@ export default class WampFacade {
   }
 
   /**
-   * If return not WampAuthChallenge instance then connection without authentication
+   * If return not BetakillerWampAuthChallenge instance then connection without authentication
    */
   _createAuthChallenge() {
     let options = this.options;
@@ -89,14 +89,17 @@ export default class WampFacade {
       `Name "${options.cookie_session_name}".`,
       `Separator "${options.cookie_session_separator}".`
     );
-    let wampCookieSession = new WampCookieSession(options.cookie_session_name, options.cookie_session_separator);
+    let wampCookieSession = new BetakillerWampCookieSession(
+      options.cookie_session_name,
+      options.cookie_session_separator
+    );
 
     this._debugNotice(
       `Authentication challenge:`,
       `ID "${wampCookieSession.getId()}".`,
       `Secret "${options.auth_secret}".`
     );
-    return new WampAuthChallenge(wampCookieSession.getId(), options.auth_secret);
+    return new BetakillerWampAuthChallenge(wampCookieSession.getId(), options.auth_secret);
   }
 
   _onConnectResolve(connection) {
@@ -184,7 +187,7 @@ export default class WampFacade {
         `Data:`, request.data
       );
       try {
-        new WampRequest(this.connection)
+        new BetakillerWampRequest(this.connection)
           .request(request.procedure, request.data)
           .then(response => this._onRequestResolve(request, response))
           .catch(error => this._onRequestReject(request, error));

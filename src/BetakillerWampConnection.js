@@ -1,8 +1,9 @@
 'use strict';
 
-import WampAuthChallenge from './WampAuthChallenge';
+var autobahn = require('autobahn');
+import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 
-export default class WampConnection {
+export default class BetakillerWampConnection {
   constructor(url, realm, authChallenge = undefined) {
     this.url           = url;
     this.realm         = realm;
@@ -115,7 +116,7 @@ export default class WampConnection {
       url:   this.url,
       realm: this.realm,
     };
-    if (this.authChallenge instanceof WampAuthChallenge) {
+    if (this.authChallenge instanceof BetakillerWampAuthChallenge) {
       options.authmethods = [this.authChallenge.getMethod()];
       options.authid      = this.authChallenge.getAuthId();
       options.onchallenge = (session, method, extra) => this._onChallenge(session, method, extra);

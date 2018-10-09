@@ -1,6 +1,6 @@
 'use strict';
 
-export default class WampCookieSession {
+export default class BetakillerWampCookieSession {
   constructor(cookieName, cookieSeparator = undefined) {
     this.cookieName      = cookieName;
     this.cookieSeparator = cookieSeparator;

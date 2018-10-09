@@ -1,15 +1,15 @@
 'use strict';
 
-import WampRequest from './WampRequest';
+import BetakillerWampRequest from './BetakillerWampRequest';
 
-export default class WampApiRequest extends WampRequest {
+export default class BetakillerWampApiRequest extends BetakillerWampRequest {
   constructor(connection, procedure = 'api') {
     super(connection);
     this.procedure = procedure || 'api';
   }
 
   request(resurce, method, data = undefined) {
-    data = WampApiRequest.normalizeCallData(data);
+    data = BetakillerWampApiRequest.normalizeCallData(data);
     data.unshift(method);
     data.unshift(resurce);
     return super.request(this.procedure, data);

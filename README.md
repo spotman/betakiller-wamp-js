@@ -1,11 +1,13 @@
 # betakiller-wamp-js
 JavaScript facade for BetaKiller WAMP transport
 
-# Install
+# Use
+var WampFacade = require('betakiller-wamp-js');
+WampFacade
+  .request('api', ['validation', 'userEmail', 'login@domain.tld'])
+  .then(response => console.log('Request response:', response))
+  .catch(error => console.error('Request error:', error));
+
+# Install Node.js
 - [Install](https://nodejs.org/en/download/package-manager) `node.js`
-- [Install](https://yarnpkg.com/en/docs/install) `yarn`
-- Clone repository
-- Open repository directory
-- Run `npm install`
-- Run `yarn start`
-- Checkout result in repository sub directory `lib` 
+

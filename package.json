@@ -1,5 +1,6 @@
 {
   "name": "betakiller-wamp-js",
+  "main": "./src/BetakillerWampFacade.js",
   "version": "0.0.1",
   "description": "JavaScript facade for BetaKiller WAMP transport",
   "author": {
@@ -19,23 +20,7 @@
     "url": "https://github.com/spotman/betakiller-wamp-js"
   },
   "license": "MIT",
-  "main": "WAMP",
-  "scripts": {
-    "start": "gulp"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.1.2",
-    "@babel/preset-env": "^7.1.0",
-    "@babel/register": "^7.0.0",
-    "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-babel": "^8.0.0-beta.2",
-    "gulp-rename": "^1.4.0",
-    "gulp-uglify": "^3.0.1"
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ]
+  "dependencies": {
+    "autobahn": "^18.3.2"
   }
 }
