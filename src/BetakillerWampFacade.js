@@ -5,12 +5,25 @@ import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 import BetakillerWampConnection from './BetakillerWampConnection';
 import BetakillerWampRequest from './BetakillerWampRequest';
 
+/**
+ * Event "onClose" result:
+ * {
+ *  string reason,
+ *  bool isClosedByClient,
+ *  bool reconnectionState,
+ *  int reconnectionTry,
+ *  int reconnectionDelay,
+ * }
+ */
 export default class BetakillerWampFacade {
-  constructor(debug = false) {
-    this.debug               = debug;
-    this.connection          = undefined;
-    this.requests            = [];
-    this._requestsOnProgress = false;
+  constructor(onOpen = undefined, onClose = undefined, debug = false) {
+    this.onOpen                  = onOpen;
+    this.onClose                 = onClose;
+    this.debug                   = debug;
+    this.connection              = undefined;
+    this.requests                = [];
+    this._requestsOnProgress     = false;
+    this.reason_closed_by_client = 'closed_by_client';
 
     this._initOptions();
     this._initConnection();
@@ -28,23 +41,27 @@ export default class BetakillerWampFacade {
     };
   }
 
-  _initConnection() {
-    if (!this.options.lazy) this.connect();
+  isLazyConnecting() {
+    return this.options.lazy;
   }
 
-  _isConnecting() {
+  isConnecting() {
     return this.connection && this.connection.isOnProgress();
   }
 
-  _isConnected() {
+  isConnected() {
     return this.connection && this.connection.isReady();
   }
 
+  _initConnection() {
+    if (!this.isLazyConnecting()) this.connect();
+  }
+
   connect() {
-    if (this._isConnected()) {
+    if (this.isConnected()) {
       throw new Error('WAMP. Connection already done.');
     }
-    if (this._isConnecting()) {
+    if (this.isConnecting()) {
       throw new Error('WAMP. Connection already in progress.');
     }
 
@@ -71,9 +88,13 @@ export default class BetakillerWampFacade {
   }
 
   close() {
-    if (this._isConnected()) {
+    if (this.isConnected()) {
       this.connection.close();
       this._debugNotice(`Connection closing.`);
+    } else {
+      this._eventOnConnectReject(
+        this.reason_closed_by_client, undefined, true, false, 0, 0
+      );
     }
 
     return this;
@@ -104,6 +125,9 @@ export default class BetakillerWampFacade {
 
   _onConnectResolve(connection) {
     this._debugNotice(`Connection ready:`, connection);
+    if (typeof this.onOpen === 'function') {
+      this.onOpen(this);
+    }
     this._runRequests();
   }
 
@@ -119,7 +143,7 @@ export default class BetakillerWampFacade {
       reconnectionDelay = this.connection.getDetailsReconnectionDelay(details);
     }
     if (isClosedByClient) {
-      reason = 'closed by client';
+      reason = this.reason_closed_by_client;
     }
 
     let message = [
@@ -137,6 +161,23 @@ export default class BetakillerWampFacade {
       ]);
       this._debugError.apply(this, message);
     }
+
+    this._eventOnConnectReject(
+      reason, details, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
+    );
+  }
+
+  _eventOnConnectReject(
+    reason, details, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
+  ) {
+    if (typeof this.onClose !== 'function') return;
+    this.onClose({
+      'reason':            reason,
+      'isClosedByClient':  isClosedByClient,
+      'reconnectionState': reconnectionState,
+      'reconnectionTry':   reconnectionTry,
+      'reconnectionDelay': reconnectionDelay,
+    });
   }
 
   request(procedure, data = undefined) {
@@ -169,11 +210,10 @@ export default class BetakillerWampFacade {
   }
 
   _runRequests() {
-    if (!this._isConnected()) {
-      if (this._isConnecting()) return;
+    if (!this.isConnected()) {
+      if (this.isConnecting()) return;
       return this.connect();
     }
-
     if (this._requestsOnProgress) return;
     this._requestsOnProgress = true;
 
@@ -192,7 +232,7 @@ export default class BetakillerWampFacade {
           .then(response => this._onRequestResolve(request, response))
           .catch(error => this._onRequestReject(request, error));
       } catch (error) {
-        this._onRequestReject(error, request.reject);
+        this._onRequestReject(request, error);
       }
     }
 
