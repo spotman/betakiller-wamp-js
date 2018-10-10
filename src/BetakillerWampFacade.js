@@ -162,7 +162,7 @@ export default class BetakillerWampFacade {
   }
 
   requestApi(resurce, method, data = undefined) {
-    data = WampApiRequest.normalizeCallData(data);
+    data = BetakillerWampRequest.normalizeCallData(data);
     data.unshift(method);
     data.unshift(resurce);
     return this.request(this.options.api_procedure, data);
