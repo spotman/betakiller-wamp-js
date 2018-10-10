@@ -129,7 +129,7 @@ export default class BetakillerWampFacade {
     if (isClosedByClient) {
       this._debugNotice.apply(this, message);
     } else {
-      message.concat([
+      message = message.concat([
         `Details:`, details,
         `Reconnection state "${reconnectionState}".`,
         `Reconnection try "${reconnectionTry}".`,
