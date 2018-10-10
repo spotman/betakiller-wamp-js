@@ -11,7 +11,7 @@ export default class BetakillerWampRequest {
   }
 
   request(procedure, data = undefined) {
-    data = WampRequest.normalizeCallData(data);
+    data = BetakillerWampRequest.normalizeCallData(data);
     return new Promise((resolve, reject) => {
       return this.connection
         .getSession()
@@ -23,7 +23,7 @@ export default class BetakillerWampRequest {
 
   static normalizeCallData(data) {
     if (data === null || data === undefined) {
-      return data;
+      return [];
     }
     if (data instanceof Array) {
       return data;
