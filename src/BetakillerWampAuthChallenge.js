@@ -1,6 +1,6 @@
 'use strict';
 
-var autobahn = require('autobahn');
+var autobahn = require('autobahn-browser');
 
 export default class BetakillerWampAuthChallenge {
   constructor(authId, secretKey) {
