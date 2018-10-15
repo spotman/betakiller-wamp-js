@@ -1,5 +1,5 @@
 {
-  "name": "betakiller-wamp-js",
+  "name": "@betakiller/wamp-wrapper",
   "main": "./src/BetakillerWampFacade.js",
   "version": "0.0.1",
   "description": "JavaScript facade for BetaKiller WAMP transport",
