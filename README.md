@@ -3,10 +3,36 @@ JavaScript facade for BetaKiller WAMP transport
 
 # Use
 ```
-var WampFacade = require('betakiller-wamp-js');
+import BetakillerWampFacade from '@betakiller/wamp-wrapper';
+const WampFacade = new BetakillerWampFacade;
 WampFacade
-  .request('api', ['validation', 'userEmail', 'login@domain.tld'])
+  .requestApi('validation', 'userEmail', 'login@domain.tld')
   .then(response => console.log('Request response:', response))
+  .catch(error => console.error('Request error:', error));
+```
+```
+// Import NPM module
+import BetakillerWampFacade from '@betakiller/wamp-wrapper';
+
+// Creating instance of WAMP facade
+const WampFacade = new BetakillerWampFacade(
+  // Event on resolve connecting
+  (facade)=>console.log('Connecting result:', facade),
+  // Event on reject/error connecting
+  (data)=>console.log('Connecting error:', data),
+  // Debug mode
+  true
+);
+
+// Creating WAMP request
+WampFacade
+  // Request: string uri, string|array data
+  //.request('api', ['validation', 'userEmail', 'login@domain.tld'])
+  // Request RPC API: string resource, string method, string|array data
+  .requestApi('validation', 'userEmail', 'login@domain.tld')
+  // Event on resolve request
+  .then(response => console.log('Request response:', response))
+  // Event on reject/error request
   .catch(error => console.error('Request error:', error));
 ```
 
