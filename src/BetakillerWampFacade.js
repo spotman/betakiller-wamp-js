@@ -1,5 +1,6 @@
 'use strict';
 
+import BetakillerWampUserAgent from './BetakillerWampUserAgent';
 import BetakillerWampCookieSession from './BetakillerWampCookieSession';
 import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 import BetakillerWampConnection from './BetakillerWampConnection';
@@ -14,6 +15,7 @@ import BetakillerWampRequest from './BetakillerWampRequest';
  *  int reconnectionTry,
  *  int reconnectionDelay,
  * }
+ * //todo return Details
  */
 export default class BetakillerWampFacade {
   constructor(onOpen = undefined, onClose = undefined, debug = false) {
@@ -37,7 +39,7 @@ export default class BetakillerWampFacade {
       'realm':                    'public',
       'cookie_session_name':      'sid',
       'cookie_session_separator': '~',
-      'auth_secret':              window.navigator.userAgent,
+      'auth_secret':              BetakillerWampUserAgent.get(),
     };
   }
 
