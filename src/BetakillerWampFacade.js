@@ -10,12 +10,12 @@ import BetakillerWampRequest from './BetakillerWampRequest';
  * Event "onClose" result:
  * {
  *  string reason,
+ *  string detailReason,
  *  bool isClosedByClient,
  *  bool reconnectionState,
  *  int reconnectionTry,
  *  int reconnectionDelay,
  * }
- * //todo return Details
  */
 export default class BetakillerWampFacade {
   constructor(onOpen = undefined, onClose = undefined, debug = false) {
@@ -135,11 +135,13 @@ export default class BetakillerWampFacade {
 
   _onConnectReject(reason, details) {
     let isClosedByClient  = false;
+    let detailReason      = 'unknown';
     let reconnectionState = 'unknown';
     let reconnectionTry   = 0;
     let reconnectionDelay = 0;
     if (details.hasOwnProperty('reason')) {
       isClosedByClient  = this.connection.isDetailsClosedByClient(details);
+      detailReason      = this.connection.getDetailsReason(details);
       reconnectionState = this.connection.getDetailsReconnectionState(details);
       reconnectionTry   = this.connection.getDetailsReconnectionTry(details);
       reconnectionDelay = this.connection.getDetailsReconnectionDelay(details);
@@ -156,25 +158,27 @@ export default class BetakillerWampFacade {
       this._debugNotice.apply(this, message);
     } else {
       message = message.concat([
-        `Details:`, details,
+        `Detail reason "${detailReason}".`,
         `Reconnection state "${reconnectionState}".`,
         `Reconnection try "${reconnectionTry}".`,
         `Reconnection delay "${reconnectionDelay}".`,
+        `Details:`, details,
       ]);
       this._debugError.apply(this, message);
     }
 
     this._eventOnConnectReject(
-      reason, details, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
+      reason, detailReason, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
     );
   }
 
   _eventOnConnectReject(
-    reason, details, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
+    reason, detailReason, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
   ) {
     if (typeof this.onClose !== 'function') return;
     this.onClose({
       'reason':            reason,
+      'detailReason':      detailReason,
       'isClosedByClient':  isClosedByClient,
       'reconnectionState': reconnectionState,
       'reconnectionTry':   reconnectionTry,
