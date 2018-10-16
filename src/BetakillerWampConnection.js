@@ -41,6 +41,13 @@ export default class BetakillerWampConnection {
     return 0;
   }
 
+  getDetailsReason(details) {
+    if (details.hasOwnProperty('reason')) {
+      return details.reason;
+    }
+    return 0;
+  }
+
   isDetailsClosedByClient(details) {
     if (details.hasOwnProperty('reason')) {
       return details.reason === 'wamp.error.goodbye_and_out';
