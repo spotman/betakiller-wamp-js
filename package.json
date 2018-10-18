@@ -21,6 +21,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "autobahn-browser": "^18.3.2"
+    "autobahn-browser": "^18.10.1"
   }
 }
