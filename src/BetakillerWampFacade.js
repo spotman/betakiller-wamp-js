@@ -90,13 +90,9 @@ export default class BetakillerWampFacade {
   }
 
   close() {
-    if (this.isConnected()) {
+    if (this.connection) {
       this.connection.close();
       this._debugNotice(`Connection closing.`);
-    } else {
-      this._eventOnConnectReject(
-        this.reason_closed_by_client, undefined, true, false, 0, 0
-      );
     }
 
     return this;
