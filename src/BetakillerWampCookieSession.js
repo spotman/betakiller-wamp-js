@@ -1,18 +1,12 @@
 'use strict';
 
 export default class BetakillerWampCookieSession {
-  constructor(cookieName, cookieSeparator = undefined) {
-    this.cookieName      = cookieName;
-    this.cookieSeparator = cookieSeparator;
+  constructor(cookieName) {
+    this.cookieName = cookieName;
   }
 
   getId() {
-    let id = this._readCookie(this.cookieName);
-    if (this.cookieSeparator) {
-      id = id.split(this.cookieSeparator, 2);
-      id = id[id.length - 1];
-    }
-    return id;
+    return this._readCookie(this.cookieName);
   }
 
   _readCookie(name) {

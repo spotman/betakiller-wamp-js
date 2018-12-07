@@ -38,7 +38,6 @@ export default class BetakillerWampFacade {
       'url':                      'wss://' + window.location.hostname + '/wamp',
       'realm':                    'public',
       'cookie_session_name':      'sid',
-      'cookie_session_separator': '~',
       'auth_secret':              BetakillerWampUserAgent.get(),
     };
   }
@@ -105,13 +104,9 @@ export default class BetakillerWampFacade {
     let options = this.options;
     this._debugNotice(
       `Cookie session:`,
-      `Name "${options.cookie_session_name}".`,
-      `Separator "${options.cookie_session_separator}".`
+      `Name "${options.cookie_session_name}".`
     );
-    let wampCookieSession = new BetakillerWampCookieSession(
-      options.cookie_session_name,
-      options.cookie_session_separator
-    );
+    let wampCookieSession = new BetakillerWampCookieSession(options.cookie_session_name);
 
     this._debugNotice(
       `Authentication challenge:`,
