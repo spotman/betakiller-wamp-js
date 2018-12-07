@@ -6,7 +6,13 @@ export default class BetakillerWampCookieSession {
   }
 
   getId() {
-    return this._readCookie(this.cookieName);
+    const id = this._readCookie(this.cookieName);
+
+    if (!id) {
+      throw new Error("Can not detect session ID from cookie " + this.cookieName);
+    }
+
+    return id;
   }
 
   _readCookie(name) {
