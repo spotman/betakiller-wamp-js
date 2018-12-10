@@ -25,20 +25,11 @@ export default class BetakillerWampRequest {
     if (data === null || data === undefined) {
       return [];
     }
-    if (data instanceof Array) {
+
+    if (data instanceof Array || data instanceof Object) {
       return data;
     }
-    if (typeof data instanceof Object) {
-      data = this._objectToArray(data);
-    } else {
-      data = [data];
-    }
-    return data;
-  }
 
-  _objectToArray(data) {
-    return Object.keys(data).map(function (key) {
-      return data[key];
-    });
+    throw new Error("Request arguments must be an indexed array or named object");
   }
 }
