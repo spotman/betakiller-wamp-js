@@ -199,11 +199,14 @@ export default class BetakillerWampFacade {
     });
   }
 
-  requestApi(resurce, method, data = undefined) {
+  requestApi(resource, method, data = undefined) {
     data = BetakillerWampRequest.normalizeCallData(data);
-    data.unshift(method);
-    data.unshift(resurce);
-    return this.request(this.options.api_procedure, data);
+
+    return this.request(this.options.api_procedure, {
+      resource,
+      method,
+      data
+    });
   }
 
   _runRequests() {
