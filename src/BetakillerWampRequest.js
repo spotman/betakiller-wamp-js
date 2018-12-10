@@ -12,12 +12,17 @@ export default class BetakillerWampRequest {
 
   request(procedure, data = undefined) {
     data = BetakillerWampRequest.normalizeCallData(data);
+
+    const session = this.connection.getSession();
+
     return new Promise((resolve, reject) => {
-      return this.connection
-        .getSession()
-        .call(procedure, data)
-        .then(response => resolve(response))
-        .catch(error => reject({'procedure': procedure, 'data': data, 'message': error}));
+        const p = Array.isArray(data)
+          ? session.call(procedure, data)
+          : session.call(procedure, [], data);
+
+        p
+          .then(response => resolve(response))
+          .catch(error => reject({'procedure': procedure, 'data': data, 'message': error}));
     });
   }
 
