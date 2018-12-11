@@ -211,21 +211,29 @@ export default class BetakillerWampFacade {
 
   _runRequests() {
     if (!this.isConnected()) {
-      if (this.isConnecting()) return;
+      if (this.isConnecting()) {
+        return;
+      }
+
       return this.connect();
     }
-    if (this._requestsOnProgress) return;
+
+    if (this._requestsOnProgress) {
+      return;
+    }
+
     this._requestsOnProgress = true;
 
-    for (let i in this.requests) {
-      if (!this.requests.hasOwnProperty(i)) continue;
-      let request = this.requests[i];
+    // Prevent race conditions on parallel requests
+    while (this.requests.length > 0) {
+      let request = this.requests.pop();
 
       this._debugNotice(
         `Request run:`,
         `Procedure "${request.procedure}".`,
         `Data:`, request.data
       );
+
       try {
         new BetakillerWampRequest(this.connection)
           .request(request.procedure, request.data)
@@ -236,7 +244,6 @@ export default class BetakillerWampFacade {
       }
     }
 
-    this.requests            = [];
     this._requestsOnProgress = false;
   }
 
@@ -247,7 +254,16 @@ export default class BetakillerWampFacade {
       `Data:`, request.data,
       `Response:`, response,
     );
-    request.resolve(response);
+
+    switch (request.procedure) {
+      case this.options.api_procedure:
+        request.resolve(response.data, response.last_modified);
+        break;
+
+      default:
+        request.resolve(response);
+        break;
+    }
   }
 
   _onRequestReject(request, error) {

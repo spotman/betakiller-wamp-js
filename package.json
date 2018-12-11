@@ -1,7 +1,7 @@
 {
   "name": "@betakiller/wamp-wrapper",
   "main": "./src/BetakillerWampFacade.js",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "JavaScript facade for BetaKiller WAMP transport",
   "author": {
     "name": "",
@@ -21,6 +21,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "autobahn-browser": "^18.10.1"
+    "autobahn-browser": "^18.10.2"
   }
 }
