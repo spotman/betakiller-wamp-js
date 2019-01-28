@@ -19,12 +19,12 @@ import BetakillerWampRequest from './BetakillerWampRequest';
  */
 export default class BetakillerWampFacade {
   constructor(onOpen = undefined, onClose = undefined, debug = false) {
-    this.onOpen                  = onOpen;
-    this.onClose                 = onClose;
-    this.debug                   = debug;
-    this.connection              = undefined;
-    this.requests                = [];
-    this._requestsOnProgress     = false;
+    this.onOpen = onOpen;
+    this.onClose = onClose;
+    this.debug = debug;
+    this.connection = undefined;
+    this.requests = [];
+    this._requestsOnProgress = false;
     this.reason_closed_by_client = 'closed_by_client';
 
     this._initOptions();
@@ -33,12 +33,12 @@ export default class BetakillerWampFacade {
 
   _initOptions() {
     this.options = {
-      'lazy':                     true,
-      'api_procedure':            'api',
-      'url':                      'wss://' + window.location.hostname + '/wamp',
-      'realm':                    'public',
-      'cookie_session_name':      'sid',
-      'auth_secret':              BetakillerWampUserAgent.get(),
+      'lazy': true,
+      'api_procedure': 'api',
+      'url': 'wss://' + window.location.hostname + '/wamp',
+      'realm': 'public',
+      'cookie_session_name': 'sid',
+      'auth_secret': BetakillerWampUserAgent.get(),
     };
   }
 
@@ -125,16 +125,16 @@ export default class BetakillerWampFacade {
   }
 
   _onConnectReject(reason, details) {
-    let isClosedByClient  = false;
-    let detailReason      = 'unknown';
+    let isClosedByClient = false;
+    let detailReason = 'unknown';
     let reconnectionState = 'unknown';
-    let reconnectionTry   = 0;
+    let reconnectionTry = 0;
     let reconnectionDelay = 0;
     if (details.hasOwnProperty('reason')) {
-      isClosedByClient  = this.connection.isDetailsClosedByClient(details);
-      detailReason      = this.connection.getDetailsReason(details);
+      isClosedByClient = this.connection.isDetailsClosedByClient(details);
+      detailReason = this.connection.getDetailsReason(details);
       reconnectionState = this.connection.getDetailsReconnectionState(details);
-      reconnectionTry   = this.connection.getDetailsReconnectionTry(details);
+      reconnectionTry = this.connection.getDetailsReconnectionTry(details);
       reconnectionDelay = this.connection.getDetailsReconnectionDelay(details);
     }
     if (isClosedByClient) {
@@ -168,11 +168,11 @@ export default class BetakillerWampFacade {
   ) {
     if (typeof this.onClose !== 'function') return;
     this.onClose({
-      'reason':            reason,
-      'detailReason':      detailReason,
-      'isClosedByClient':  isClosedByClient,
+      'reason': reason,
+      'detailReason': detailReason,
+      'isClosedByClient': isClosedByClient,
       'reconnectionState': reconnectionState,
-      'reconnectionTry':   reconnectionTry,
+      'reconnectionTry': reconnectionTry,
       'reconnectionDelay': reconnectionDelay,
     });
   }
@@ -185,15 +185,15 @@ export default class BetakillerWampFacade {
     );
     let request = {
       'procedure': procedure,
-      'data':      data,
-      'resolve':   undefined,
-      'reject':    undefined,
+      'data': data,
+      'resolve': undefined,
+      'reject': undefined,
     };
     this.requests.push(request);
 
     return new Promise((resolve, reject) => {
       request.resolve = resolve;
-      request.reject  = reject;
+      request.reject = reject;
 
       this._runRequests();
     });
@@ -257,7 +257,7 @@ export default class BetakillerWampFacade {
 
     switch (request.procedure) {
       case this.options.api_procedure:
-        if (!response.hasOwnProperty('data') || !response.hasOwnProperty('last_modified')) {
+        if (typeof response !== 'object' || !response.hasOwnProperty('data') || !response.hasOwnProperty('last_modified')) {
           throw new Error('Wrong API response structure: '.JSON.stringify(response));
         }
 
