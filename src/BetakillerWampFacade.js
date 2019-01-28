@@ -257,6 +257,10 @@ export default class BetakillerWampFacade {
 
     switch (request.procedure) {
       case this.options.api_procedure:
+        if (!response.hasOwnProperty('data') || !response.hasOwnProperty('last_modified')) {
+          throw new Error('Wrong API response structure: '.JSON.stringify(response));
+        }
+
         request.resolve(response.data, response.last_modified);
         break;
 
