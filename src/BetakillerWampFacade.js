@@ -178,7 +178,7 @@ export default class BetakillerWampFacade {
     });
   }
 
-  request(procedure, data = undefined) {
+  request(procedure, data = undefined, timeout = null) {
     this._debugNotice(
       `Request add:`,
       `Procedure "${procedure}".`,
@@ -189,6 +189,7 @@ export default class BetakillerWampFacade {
       'data': data,
       'resolve': undefined,
       'reject': undefined,
+      'timeout': timeout
     };
     this.requests.push(request);
 
@@ -200,14 +201,14 @@ export default class BetakillerWampFacade {
     });
   }
 
-  requestApi(resource, method, data = undefined) {
+  requestApi(resource, method, data = undefined, timeout = null) {
     data = BetakillerWampRequest.normalizeCallData(data);
 
     return this.request(this.options.api_procedure, {
       resource,
       method,
       data
-    });
+    }, timeout);
   }
 
   _runRequests() {
@@ -237,7 +238,7 @@ export default class BetakillerWampFacade {
 
       try {
         new BetakillerWampRequest(this.connection)
-          .request(request.procedure, request.data)
+          .request(request.procedure, request.data, request.timeout)
           .then(response => this._onRequestResolve(request, response))
           .catch(error => this._onRequestReject(request, error));
       } catch (error) {

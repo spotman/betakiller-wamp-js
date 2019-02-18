@@ -10,8 +10,10 @@ export default class BetakillerWampRequest {
     this.connection = connection;
   }
 
-  request(procedure, data = undefined) {
+  request(procedure, data = undefined, timeout = null) {
     data = BetakillerWampRequest.normalizeCallData(data);
+
+    timeout = timeout || 5000; // 5 seconds by default
 
     const session = this.connection.getSession();
 
@@ -20,9 +22,27 @@ export default class BetakillerWampRequest {
           ? session.call(procedure, data)
           : session.call(procedure, [], data);
 
-        p
-          .then(response => resolve(response))
-          .catch(error => reject({'procedure': procedure, 'data': data, 'message': error}));
+      const timer = setTimeout(() => {
+        reject({
+          'procedure': procedure,
+          'data': data,
+          'message': 'WAMP request timeout'
+        });
+      }, timeout);
+
+      p
+          .then(response => {
+            clearTimeout(timer);
+            resolve(response);
+          })
+          .catch(error => {
+            clearTimeout(timer);
+            reject({
+              'procedure': procedure,
+              'data': data,
+              'message': error
+            });
+          });
     });
   }
 
