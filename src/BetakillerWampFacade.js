@@ -155,7 +155,8 @@ export default class BetakillerWampFacade {
         `Reconnection delay "${reconnectionDelay}".`,
         `Details:`, details,
       ]);
-      this._debugError.apply(this, message);
+
+      throw new Error(message.join(' '));
     }
 
     this._eventOnConnectReject(
