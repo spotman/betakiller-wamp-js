@@ -1,6 +1,6 @@
 'use strict';
 
-import BetakillerWampUserAgent from './BetakillerWampUserAgent';
+//import BetakillerWampUserAgent from './BetakillerWampUserAgent';
 import BetakillerWampCookieSession from './BetakillerWampCookieSession';
 import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 import BetakillerWampConnection from './BetakillerWampConnection';
@@ -38,7 +38,7 @@ export default class BetakillerWampFacade {
       'url': 'wss://' + window.location.hostname + '/wamp',
       'realm': 'public',
       'cookie_session_name': 'sid',
-      'auth_secret': BetakillerWampUserAgent.get(),
+      'auth_secret': null, //BetakillerWampUserAgent.get(),
     };
   }
 
@@ -106,11 +106,15 @@ export default class BetakillerWampFacade {
       `Cookie session:`,
       `Name "${options.cookie_session_name}".`
     );
-    let wampCookieSession = new BetakillerWampCookieSession(options.cookie_session_name);
+    const wampCookieSession = new BetakillerWampCookieSession(options.cookie_session_name),
+          sessionId = wampCookieSession.getId();
+
+    // Temp fix for annoying user-agent issues (constantly changing during browser updates)
+    options.auth_secret = sessionId;
 
     this._debugNotice(
       `Authentication challenge:`,
-      `ID "${wampCookieSession.getId()}".`,
+      `ID "${sessionId}".`,
       `Secret "${options.auth_secret}".`
     );
     return new BetakillerWampAuthChallenge(wampCookieSession.getId(), options.auth_secret);
