@@ -107,7 +107,7 @@ export default class BetakillerWampFacade {
       `Name "${options.cookie_session_name}".`
     );
     const wampCookieSession = new BetakillerWampCookieSession(options.cookie_session_name),
-          sessionId = wampCookieSession.getId();
+          sessionId         = wampCookieSession.getId();
 
     // Temp fix for annoying user-agent issues (constantly changing during browser updates)
     options.auth_secret = sessionId;
@@ -263,11 +263,20 @@ export default class BetakillerWampFacade {
 
     switch (request.procedure) {
       case this.options.api_procedure:
-        if (!response || typeof response !== 'object' || !response.hasOwnProperty('data') || !response.hasOwnProperty('last_modified')) {
-          throw new Error('Wrong API response structure ' + JSON.stringify(response) + " for request " + JSON.stringify(request));
+        if (!response || typeof response !== 'object') {
+          throw new Error('Wrong API response type ' + JSON.stringify(response) + " for request " + JSON.stringify(request));
         }
 
-        request.resolve(response.data, response.last_modified);
+        const hasData  = response.hasOwnProperty('data') && response.hasOwnProperty('last_modified'),
+              hasError = response.hasOwnProperty('error');
+
+        if (hasError) {
+          request.reject(response.error);
+        } else if (hasData) {
+          request.resolve(response.data, response.last_modified);
+        } else {
+          throw new Error('Wrong API response structure ' + JSON.stringify(response) + " for request " + JSON.stringify(request));
+        }
         break;
 
       default:
