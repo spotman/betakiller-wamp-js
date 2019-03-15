@@ -1,7 +1,7 @@
 'use strict';
 
 //import BetakillerWampUserAgent from './BetakillerWampUserAgent';
-import BetakillerWampCookieSession from './BetakillerWampCookieSession';
+import BetakillerWampSessionCookie from './BetakillerWampCookieSession';
 import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 import BetakillerWampConnection from './BetakillerWampConnection';
 import BetakillerWampRequest from './BetakillerWampRequest';
@@ -27,19 +27,23 @@ export default class BetakillerWampFacade {
     this._requestsOnProgress = false;
     this.reason_closed_by_client = 'closed_by_client';
 
-    this._initOptions();
-    this._initConnection();
-  }
-
-  _initOptions() {
     this.options = {
-      'lazy': true,
+      'lazy': false,
       'api_procedure': 'api',
       'url': 'wss://' + window.location.hostname + '/wamp',
       'realm': 'public',
       'cookie_session_name': 'sid',
       'auth_secret': null, //BetakillerWampUserAgent.get(),
     };
+
+    this.sessionCookie = new BetakillerWampSessionCookie(this.options.cookie_session_name);
+
+    this._initConnection();
+
+    this.sessionCookie.watch(() => {
+      // Reconnect after session change
+      this.reconnect();
+    });
   }
 
   isLazyConnecting() {
@@ -88,13 +92,20 @@ export default class BetakillerWampFacade {
     return this;
   }
 
-  close() {
+  disconnect() {
     if (this.connection) {
       this.connection.close();
+      this.connection = undefined;
       this._debugNotice(`Connection closing.`);
     }
 
     return this;
+  }
+
+  reconnect() {
+    console.log('reconnecting');
+    this.disconnect();
+    this.connect();
   }
 
   /**
@@ -106,8 +117,7 @@ export default class BetakillerWampFacade {
       `Cookie session:`,
       `Name "${options.cookie_session_name}".`
     );
-    const wampCookieSession = new BetakillerWampCookieSession(options.cookie_session_name),
-          sessionId         = wampCookieSession.getId();
+    const sessionId = this.sessionCookie.getId();
 
     // Temp fix for annoying user-agent issues (constantly changing during browser updates)
     options.auth_secret = sessionId;
@@ -117,7 +127,7 @@ export default class BetakillerWampFacade {
       `ID "${sessionId}".`,
       `Secret "${options.auth_secret}".`
     );
-    return new BetakillerWampAuthChallenge(wampCookieSession.getId(), options.auth_secret);
+    return new BetakillerWampAuthChallenge(sessionId, options.auth_secret);
   }
 
   _onConnectResolve(connection) {
