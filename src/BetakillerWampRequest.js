@@ -15,14 +15,14 @@ export default class BetakillerWampRequest {
 
     timeout = timeout || 5000; // 5 seconds by default
 
-    const session = this.connection.getSession();
+    var session = this.connection.getSession();
 
     return new Promise((resolve, reject) => {
-        const p = Array.isArray(data)
+        var p = Array.isArray(data)
           ? session.call(procedure, data)
           : session.call(procedure, [], data);
 
-      const timer = setTimeout(() => {
+      var timer = setTimeout(() => {
         reject({
           'procedure': procedure,
           'data': data,

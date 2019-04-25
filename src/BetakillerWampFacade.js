@@ -70,9 +70,9 @@ export default class BetakillerWampFacade {
       throw new Error('WAMP. Connection already in progress.');
     }
 
-    let wampAuthChallenge = this._createAuthChallenge();
+    var wampAuthChallenge = this._createAuthChallenge();
 
-    let options = this.options;
+    var options = this.options;
     this._debugNotice(
       `Connection:`,
       `Url "${options.url}".`,
@@ -112,12 +112,12 @@ export default class BetakillerWampFacade {
    * If return not BetakillerWampAuthChallenge instance then connection without authentication
    */
   _createAuthChallenge() {
-    let options = this.options;
+    var options = this.options;
     this._debugNotice(
       `Cookie session:`,
       `Name "${options.cookie_session_name}".`
     );
-    const sessionId = this.sessionCookie.getId();
+    var sessionId = this.sessionCookie.getId();
 
     // Temp fix for annoying user-agent issues (constantly changing during browser updates)
     options.auth_secret = sessionId;
@@ -139,11 +139,11 @@ export default class BetakillerWampFacade {
   }
 
   _onConnectReject(reason, details) {
-    let isClosedByClient = false;
-    let detailReason = 'unknown';
-    let reconnectionState = 'unknown';
-    let reconnectionTry = 0;
-    let reconnectionDelay = 0;
+    var isClosedByClient = false;
+    var detailReason = 'unknown';
+    var reconnectionState = 'unknown';
+    var reconnectionTry = 0;
+    var reconnectionDelay = 0;
     if (details.hasOwnProperty('reason')) {
       isClosedByClient = this.connection.isDetailsClosedByClient(details);
       detailReason = this.connection.getDetailsReason(details);
@@ -155,7 +155,7 @@ export default class BetakillerWampFacade {
       reason = this.reason_closed_by_client;
     }
 
-    let message = [
+    var message = [
       `Connection closed:`,
       `Reason "${reason}".`,
     ];
@@ -198,7 +198,7 @@ export default class BetakillerWampFacade {
       `Procedure "${procedure}".`,
       `Data:`, data
     );
-    let request = {
+    var request = {
       'procedure': procedure,
       'data': data,
       'resolve': undefined,
@@ -242,7 +242,7 @@ export default class BetakillerWampFacade {
 
     // Prevent race conditions on parallel requests
     while (this.requests.length > 0) {
-      let request = this.requests.pop();
+      var request = this.requests.pop();
 
       this._debugNotice(
         `Request run:`,
@@ -277,8 +277,8 @@ export default class BetakillerWampFacade {
           throw new Error('Wrong API response type ' + JSON.stringify(response) + " for request " + JSON.stringify(request));
         }
 
-        const hasData  = response.hasOwnProperty('data') && response.hasOwnProperty('last_modified'),
-              hasError = response.hasOwnProperty('error');
+        var hasData  = response.hasOwnProperty('data') && response.hasOwnProperty('last_modified'),
+            hasError = response.hasOwnProperty('error');
 
         if (hasError) {
           request.reject(response.error);
@@ -318,7 +318,7 @@ export default class BetakillerWampFacade {
   _debug(isError, ...args) {
     if (!this.debug) return;
     args.unshift('WAMP.');
-    let log = Function.prototype.bind.call(
+    var log = Function.prototype.bind.call(
       isError ? console.error : console.log,
       console
     );

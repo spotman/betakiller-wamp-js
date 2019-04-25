@@ -17,7 +17,7 @@ export default class BetakillerWampCookieSession {
 
     // Poll for cookie change (new session created in other tab)
     setInterval(() => {
-      const newSid = this._read();
+      var newSid = this._read();
 
       if (newSid !== this.sid && handler) {
         this.sid = newSid;
@@ -30,7 +30,7 @@ export default class BetakillerWampCookieSession {
     var matches = document.cookie.match(new RegExp(
       "(?:^|; )" + this.cookieName.replace(/([.$?*|{}()\[\]\\\/+^])/g, '\\$1') + "=([^;]*)"
     ));
-    const value = matches ? decodeURIComponent(matches[1]) : null;
+    var value = matches ? decodeURIComponent(matches[1]) : null;
 
     if (!value) {
       throw new Error("Can not detect session ID from cookie " + this.cookieName);

@@ -119,7 +119,7 @@ export default class BetakillerWampConnection {
 
     this._enableReconnect();
 
-    let options = {
+    var options = {
       url:   this.url,
       realm: this.realm,
     };
