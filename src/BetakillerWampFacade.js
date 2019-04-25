@@ -242,25 +242,27 @@ export default class BetakillerWampFacade {
 
     // Prevent race conditions on parallel requests
     while (this.requests.length > 0) {
-      var request = this.requests.pop();
-
-      this._debugNotice(
-        `Request run:`,
-        `Procedure "${request.procedure}".`,
-        `Data:`, request.data
-      );
-
-      try {
-        new BetakillerWampRequest(this.connection)
-          .request(request.procedure, request.data, request.timeout)
-          .then(response => this._onRequestResolve(request, response))
-          .catch(error => this._onRequestReject(request, error));
-      } catch (error) {
-        this._onRequestReject(request, error);
-      }
+      this._processRequest(this.requests.pop());
     }
 
     this._requestsOnProgress = false;
+  }
+
+  _processRequest(request) {
+    this._debugNotice(
+      `Request run:`,
+      `Procedure "${request.procedure}".`,
+      `Data:`, request.data
+    );
+
+    try {
+      new BetakillerWampRequest(this.connection)
+        .request(request.procedure, request.data, request.timeout)
+        .then(response => this._onRequestResolve(request, response))
+        .catch(error => this._onRequestReject(request, error));
+    } catch (error) {
+      this._onRequestReject(request, error);
+    }
   }
 
   _onRequestResolve(request, response) {
