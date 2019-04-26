@@ -13,7 +13,7 @@ export default class BetakillerWampRequest {
   request(procedure, data = undefined, timeout = null) {
     data = BetakillerWampRequest.normalizeCallData(data);
 
-    timeout = timeout || 5000; // 5 seconds by default
+    timeout = timeout || 10000; // 10 seconds by default
 
     var session = this.connection.getSession();
 
