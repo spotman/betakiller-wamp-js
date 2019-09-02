@@ -6,7 +6,7 @@ JavaScript facade for BetaKiller WAMP transport
 import BetakillerWampFacade from '@betakiller/wamp-wrapper';
 const WampFacade = new BetakillerWampFacade;
 WampFacade
-  .requestApi('validation', 'userEmail', 'login@domain.tld')
+  .rpcApiCall('validation', 'userEmail', 'login@domain.tld')
   .then(response => console.log('Request response:', response))
   .catch(error => console.error('Request error:', error));
 ```
@@ -29,7 +29,7 @@ WampFacade
   // Request: string uri, string|array data
   //.request('api', ['validation', 'userEmail', 'login@domain.tld'])
   // Request RPC API: string resource, string method, string|array data
-  .requestApi('validation', 'userEmail', 'login@domain.tld')
+  .rpcApiCall('validation', 'userEmail', 'login@domain.tld')
   // Event on resolve request
   .then(response => console.log('Request response:', response))
   // Event on reject/error request

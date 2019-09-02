@@ -192,7 +192,34 @@ export default class BetakillerWampFacade {
     });
   }
 
-  request(procedure, data = undefined, timeout = null) {
+  eventEmit(name, data = []) {
+    if (!this.isConnected()) {
+      if (this.isConnecting()) {
+        return;
+      }
+
+      return this.connect();
+    }
+
+    this.connection.getSession().publish(name, data);
+  }
+
+  eventSubscribe(name, handler) {
+    if (!this.isConnected()) {
+      if (this.isConnecting()) {
+        return;
+      }
+
+      return this.connect();
+    }
+
+    this.connection.getSession().subscribe(name, (payload) => {
+      //console.log('Event', payload);
+      handler(payload);
+    });
+  }
+
+  rpcCall(procedure, data = undefined, timeout = null) {
     this._debugNotice(
       `Request add:`,
       `Procedure "${procedure}".`,
@@ -215,10 +242,10 @@ export default class BetakillerWampFacade {
     });
   }
 
-  requestApi(resource, method, data = undefined, timeout = null) {
+  rpcApiCall(resource, method, data = undefined, timeout = null) {
     data = BetakillerWampRequest.normalizeCallData(data);
 
-    return this.request(this.options.api_procedure, {
+    return this.rpcCall(this.options.api_procedure, {
       resource,
       method,
       data
