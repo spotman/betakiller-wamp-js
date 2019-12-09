@@ -213,9 +213,9 @@ export default class BetakillerWampFacade {
       return this.connect();
     }
 
-    this.connection.getSession().subscribe(name, (payload) => {
-      //console.log('Event', payload);
-      handler(payload);
+    this.connection.getSession().subscribe(name, (args, kvargs) => {
+      //console.log('Event', args, kwargs, details);
+      handler(kvargs);
     });
   }
 
