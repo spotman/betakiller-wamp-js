@@ -220,11 +220,11 @@ export default class BetakillerWampFacade {
   }
 
   rpcCall(procedure, data = undefined, timeout = null) {
-    this._debugNotice(
-      `Request add:`,
-      `Procedure "${procedure}".`,
-      `Data:`, data
-    );
+    //this._debugNotice(
+    //  `Request enqueued:`,
+    //  `Procedure "${procedure}".`,
+    //  `Data:`, data
+    //);
     var request = {
       'procedure': procedure,
       'data': data,
@@ -276,13 +276,15 @@ export default class BetakillerWampFacade {
   }
 
   _processRequest(request) {
-    this._debugNotice(
-      `Request run:`,
-      `Procedure "${request.procedure}".`,
-      `Data:`, request.data
-    );
+    //this._debugNotice(
+    //  `Request run:`,
+    //  `Procedure "${request.procedure}".`,
+    //  `Data:`, request.data
+    //);
 
     try {
+      request.start = Date.now();
+
       new BetakillerWampRequest(this.connection)
         .request(request.procedure, request.data, request.timeout)
         .then(response => this._onRequestResolve(request, response))
@@ -293,9 +295,11 @@ export default class BetakillerWampFacade {
   }
 
   _onRequestResolve(request, response) {
+    request.end = Date.now();
+    request.duration = request.end - request.start;
+
     this._debugNotice(
-      `Request response:`,
-      `Procedure "${request.procedure}".`,
+      `Procedure "${request.procedure}" executed in ${request.duration} ms.`,
       `Data:`, request.data,
       `Response:`, response,
     );
