@@ -300,7 +300,7 @@ export default class BetakillerWampFacade {
 
     this._debugNotice(
       `Procedure "${request.procedure}" executed in ${request.duration} ms.`,
-      `Data:`, request.data,
+      `Request:`, request.data,
       `Response:`, response,
     );
 
