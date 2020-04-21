@@ -113,10 +113,10 @@ export default class BetakillerWampFacade {
    */
   _createAuthChallenge() {
     var options = this.options;
-    this._debugNotice(
-      `Cookie session:`,
-      `Name "${options.cookie_session_name}".`
-    );
+    //this._debugNotice(
+    //  `Cookie session:`,
+    //  `Name "${options.cookie_session_name}".`
+    //);
     var sessionId = this.sessionCookie.getId();
 
     // Temp fix for annoying user-agent issues (constantly changing during browser updates)
@@ -124,8 +124,8 @@ export default class BetakillerWampFacade {
 
     this._debugNotice(
       `Authentication challenge:`,
-      `ID "${sessionId}".`,
-      `Secret "${options.auth_secret}".`
+      `ID "${sessionId}".`
+      //`Secret "${options.auth_secret}".`
     );
     return new BetakillerWampAuthChallenge(sessionId, options.auth_secret);
   }
