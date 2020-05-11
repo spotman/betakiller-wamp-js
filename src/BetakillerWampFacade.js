@@ -143,7 +143,7 @@ export default class BetakillerWampFacade {
     if (typeof this.onOpen === 'function') {
       this.onOpen(this);
     }
-    this._runRequests();
+    //this._runRequests();
   }
 
   _onConnectReject(reason, details) {
