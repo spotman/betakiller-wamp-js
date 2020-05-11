@@ -27,6 +27,8 @@ export default class BetakillerWampFacade {
     this._requestsOnProgress = false;
     this.reason_closed_by_client = 'closed_by_client';
 
+    this.connectionPromise = undefined;
+
     this.options = {
       'lazy': false,
       'api_procedure': 'api',
@@ -38,7 +40,9 @@ export default class BetakillerWampFacade {
 
     this.sessionCookie = new BetakillerWampSessionCookie(this.options.cookie_session_name);
 
-    this._initConnection();
+    if (!this.isLazyConnecting()) {
+      this.connect();
+    }
 
     this.sessionCookie.watch(() => {
       // Reconnect after session change
@@ -58,60 +62,58 @@ export default class BetakillerWampFacade {
     return this.connection && this.connection.isReady();
   }
 
-  _initConnection() {
-    if (!this.isLazyConnecting()) this.connect();
-  }
-
-  connect() {
+  async connect() {
     if (this.isConnected()) {
-      throw new Error('[WAMP] Connection already done.');
+      return;
     }
+
     if (this.isConnecting()) {
-      throw new Error('[WAMP] Connection already in progress.');
+      return this.connectionPromise;
     }
 
     const started = Date.now();
 
-    var wampAuthChallenge = this._createAuthChallenge();
+    return this.connectionPromise = new Promise((resolve, reject) => {
+      try {
+        this.connection = new BetakillerWampConnection(this.options.url, this.options.realm, this._createAuthChallenge());
+        this.connection
+          .onOpen((connection) => {
+            this._onConnectResolve(connection);
+            resolve();
 
-    var options = this.options;
+            const duration = Date.now() - started;
 
-    try {
-      this.connection = new BetakillerWampConnection(options.url, options.realm, wampAuthChallenge);
-      this.connection
-        .onOpen((connection) => this._onConnectResolve(connection))
-        .onClose((reason, details) => this._onConnectReject(reason, details))
-        .open();
-    } catch (error) {
-      this._onConnectReject('error', error);
-    }
-
-    const duration = Date.now() - started;
-
-    this._debugNotice(
-      `Connected in ${duration} ms`,
-      `URL "${options.url}".`,
-      `Realm "${options.realm}".`,
-      //`Authentication challenge:`, wampAuthChallenge
-    );
-
-    return this;
+            this._debugNotice(
+              `Connected in ${duration} ms`,
+              `URL "${this.options.url}".`,
+              `Realm "${this.options.realm}".`,
+              //`Authentication challenge:`, wampAuthChallenge
+            );
+          })
+          .onClose((reason, details) => {
+            this._onConnectReject(reason, details);
+            reject();
+          })
+          .open();
+      } catch (error) {
+        this._onConnectReject('error', error);
+        reject();
+      }
+    });
   }
 
-  disconnect() {
+  async disconnect() {
     if (this.connection) {
       this.connection.close();
       this.connection = undefined;
       this._debugNotice(`Connection closing.`);
     }
-
-    return this;
   }
 
-  reconnect() {
+  async reconnect() {
     console.log('reconnecting');
-    this.disconnect();
-    this.connect();
+    await this.disconnect();
+    await this.connect();
   }
 
   /**
@@ -199,26 +201,14 @@ export default class BetakillerWampFacade {
     }
   }
 
-  eventEmit(name, data = []) {
-    if (!this.isConnected()) {
-      if (this.isConnecting()) {
-        return;
-      }
-
-      return this.connect();
-    }
+  async eventEmit(name, data = []) {
+    await this.connect();
 
     this.connection.getSession().publish(name, data);
   }
 
-  eventSubscribe(name, handler) {
-    if (!this.isConnected()) {
-      if (this.isConnecting()) {
-        return;
-      }
-
-      return this.connect();
-    }
+  async eventSubscribe(name, handler) {
+    await this.connect();
 
     this.connection.getSession().subscribe(name, (args, kvargs) => {
       //console.log('Event', args, kwargs, details);
@@ -226,7 +216,7 @@ export default class BetakillerWampFacade {
     });
   }
 
-  rpcCall(procedure, data = undefined, timeout = null) {
+  async rpcCall(procedure, data = undefined, timeout = null) {
     this._debugNotice(
       `Request enqueued:`,
       `Procedure "${procedure}".`,
@@ -242,17 +232,21 @@ export default class BetakillerWampFacade {
       started: Date.now(),
     };
 
-    this.requests.push(request);
+    await this.connect();
+
+    //this.requests.push(request);
 
     return new Promise((resolve, reject) => {
       request.resolve = resolve;
       request.reject = reject;
 
-      this._runRequests();
+      this._processRequest(request);
+
+      //this._runRequests();
     });
   }
 
-  rpcApiCall(resource, method, data = undefined, timeout = null) {
+  async rpcApiCall(resource, method, data = undefined, timeout = null) {
     data = BetakillerWampRequest.normalizeCallData(data);
 
     return this.rpcCall(this.options.api_procedure, {
