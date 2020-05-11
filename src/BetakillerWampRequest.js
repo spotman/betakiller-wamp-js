@@ -18,9 +18,9 @@ export default class BetakillerWampRequest {
     var session = this.connection.getSession();
 
     return new Promise((resolve, reject) => {
-        var p = Array.isArray(data)
-          ? session.call(procedure, data)
-          : session.call(procedure, [], data);
+      var p = Array.isArray(data)
+        ? session.call(procedure, data)
+        : session.call(procedure, [], data);
 
       var timer = setTimeout(() => {
         reject({
@@ -31,18 +31,18 @@ export default class BetakillerWampRequest {
       }, timeout);
 
       p
-          .then(response => {
-            clearTimeout(timer);
-            resolve(response);
-          })
-          .catch(error => {
-            clearTimeout(timer);
-            reject({
-              'procedure': procedure,
-              'data': data,
-              'message': error
-            });
+        .then(response => {
+          clearTimeout(timer);
+          resolve(response);
+        })
+        .catch(error => {
+          clearTimeout(timer);
+          reject({
+            'procedure': procedure,
+            'data': data,
+            'message': error
           });
+        });
     });
   }
 

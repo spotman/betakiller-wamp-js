@@ -64,21 +64,18 @@ export default class BetakillerWampFacade {
 
   connect() {
     if (this.isConnected()) {
-      throw new Error('WAMP. Connection already done.');
+      throw new Error('[WAMP] Connection already done.');
     }
     if (this.isConnecting()) {
-      throw new Error('WAMP. Connection already in progress.');
+      throw new Error('[WAMP] Connection already in progress.');
     }
+
+    const started = Date.now();
 
     var wampAuthChallenge = this._createAuthChallenge();
 
     var options = this.options;
-    this._debugNotice(
-      `Connection:`,
-      `Url "${options.url}".`,
-      `Realm "${options.realm}".`,
-      `Authentication challenge:`, wampAuthChallenge
-    );
+
     try {
       this.connection = new BetakillerWampConnection(options.url, options.realm, wampAuthChallenge);
       this.connection
@@ -88,6 +85,15 @@ export default class BetakillerWampFacade {
     } catch (error) {
       this._onConnectReject('error', error);
     }
+
+    const duration = Date.now() - started;
+
+    this._debugNotice(
+      `Connected in ${duration} ms`,
+      `URL "${options.url}".`,
+      `Realm "${options.realm}".`,
+      //`Authentication challenge:`, wampAuthChallenge
+    );
 
     return this;
   }
@@ -181,15 +187,16 @@ export default class BetakillerWampFacade {
   _eventOnConnectReject(
     reason, detailReason, isClosedByClient, reconnectionState, reconnectionTry, reconnectionDelay
   ) {
-    if (typeof this.onClose !== 'function') return;
-    this.onClose({
-      'reason': reason,
-      'detailReason': detailReason,
-      'isClosedByClient': isClosedByClient,
-      'reconnectionState': reconnectionState,
-      'reconnectionTry': reconnectionTry,
-      'reconnectionDelay': reconnectionDelay,
-    });
+    if (typeof this.onClose === 'function') {
+      this.onClose({
+        'reason': reason,
+        'detailReason': detailReason,
+        'isClosedByClient': isClosedByClient,
+        'reconnectionState': reconnectionState,
+        'reconnectionTry': reconnectionTry,
+        'reconnectionDelay': reconnectionDelay,
+      });
+    }
   }
 
   eventEmit(name, data = []) {
@@ -220,18 +227,21 @@ export default class BetakillerWampFacade {
   }
 
   rpcCall(procedure, data = undefined, timeout = null) {
-    //this._debugNotice(
-    //  `Request enqueued:`,
-    //  `Procedure "${procedure}".`,
-    //  `Data:`, data
-    //);
+    this._debugNotice(
+      `Request enqueued:`,
+      `Procedure "${procedure}".`,
+      `Data:`, data
+    );
+
     var request = {
-      'procedure': procedure,
-      'data': data,
-      'resolve': undefined,
-      'reject': undefined,
-      'timeout': timeout
+      procedure: procedure,
+      data: data,
+      resolve: undefined,
+      reject: undefined,
+      timeout: timeout,
+      started: Date.now(),
     };
+
     this.requests.push(request);
 
     return new Promise((resolve, reject) => {
@@ -276,30 +286,32 @@ export default class BetakillerWampFacade {
   }
 
   _processRequest(request) {
-    //this._debugNotice(
-    //  `Request run:`,
-    //  `Procedure "${request.procedure}".`,
-    //  `Data:`, request.data
-    //);
-
     try {
-      request.start = Date.now();
+      request.called = Date.now();
 
       new BetakillerWampRequest(this.connection)
         .request(request.procedure, request.data, request.timeout)
         .then(response => this._onRequestResolve(request, response))
         .catch(error => this._onRequestReject(request, error));
+
+      //this._debugNotice(
+      //  `Procedure "${request.procedure}" called`,
+      //  `Request:`, request.data
+      //);
+
     } catch (error) {
       this._onRequestReject(request, error);
     }
   }
 
   _onRequestResolve(request, response) {
-    request.end = Date.now();
-    request.duration = request.end - request.start;
+    request.finished = Date.now();
+    request.durationGross = request.finished - request.started;
+    request.durationNet = request.finished - request.called;
 
     this._debugNotice(
-      `Procedure "${request.procedure}" executed in ${request.duration} ms.`,
+      `Procedure "${request.procedure}"`,
+      `Executed in ${request.durationNet}ms / ${request.durationGross}ms (net / gross)`,
       `Request:`, request.data,
       `Response:`, response,
     );
@@ -350,7 +362,7 @@ export default class BetakillerWampFacade {
 
   _debug(isError, ...args) {
     if (!this.debug) return;
-    args.unshift('WAMP.');
+    args.unshift('[WAMP]');
     var log = Function.prototype.bind.call(
       isError ? console.error : console.log,
       console
