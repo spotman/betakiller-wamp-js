@@ -49,10 +49,7 @@ export default class BetakillerWampConnection {
   }
 
   isDetailsClosedByClient(details) {
-    if (details.hasOwnProperty('reason')) {
-      return details.reason === 'wamp.error.goodbye_and_out';
-    }
-    return false;
+    return details.hasOwnProperty('reason') && details.reason === 'wamp.error.goodbye_and_out';
   }
 
   _markAsNotReady() {
@@ -139,7 +136,7 @@ export default class BetakillerWampConnection {
   close() {
     this._disableReconnect();
     if (this.isReady()) {
-      this.connection.close('close_by_client', 'Closed by client.');
+      this.connection.close('closed_by_client', 'Closed by client.');
     }
     this._markAsNotReady();
     return this;
@@ -154,10 +151,12 @@ export default class BetakillerWampConnection {
   }
 
   _onClose(reason, details) {
+    this._markAsNotReady();
+
     if (typeof this.callbacks.close === 'function') {
       this.callbacks.close(reason, details);
     }
-    // if true then autobahn not be reconnecting
+    // if true then autobahn would not reconnect
     return !this._isReconnectEnabled();
   }
 

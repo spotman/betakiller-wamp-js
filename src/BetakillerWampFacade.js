@@ -27,7 +27,10 @@ export default class BetakillerWampFacade {
     this._requestsOnProgress = false;
     this.reason_closed_by_client = 'closed_by_client';
 
-    this.connectionPromise = undefined;
+    this.onConnectionLostHandlers = [];
+    this.onConnectionRestoredHandlers = [];
+
+    this.isConnectionLost = false;
 
     this.options = {
       'lazy': false,
@@ -38,7 +41,27 @@ export default class BetakillerWampFacade {
       'auth_secret': null, //BetakillerWampUserAgent.get(),
     };
 
+    const started = Date.now();
+
     this.sessionCookie = new BetakillerWampSessionCookie(this.options.cookie_session_name);
+    this.connection = new BetakillerWampConnection(this.options.url, this.options.realm, this._createAuthChallenge());
+
+    this.connection
+      .onOpen((connection) => {
+        this._onConnectResolve(connection);
+
+        const duration = Date.now() - started;
+
+        this._debugNotice(
+          `Connected in ${duration} ms`,
+          `URL "${this.options.url}".`,
+          `Realm "${this.options.realm}".`,
+          //`Authentication challenge:`, wampAuthChallenge
+        );
+      })
+      .onClose((reason, details) => {
+        this._onConnectReject(reason, details);
+      })
 
     if (!this.isLazyConnecting()) {
       this.connect();
@@ -67,34 +90,15 @@ export default class BetakillerWampFacade {
       return;
     }
 
-    if (this.isConnecting()) {
-      return this.connectionPromise;
-    }
-
-    const started = Date.now();
-
-    return this.connectionPromise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
-        this.connection = new BetakillerWampConnection(this.options.url, this.options.realm, this._createAuthChallenge());
         this.connection
-          .onOpen((connection) => {
-            this._onConnectResolve(connection);
-            resolve();
+          .onOpen(resolve)
+          .onClose(reject);
 
-            const duration = Date.now() - started;
-
-            this._debugNotice(
-              `Connected in ${duration} ms`,
-              `URL "${this.options.url}".`,
-              `Realm "${this.options.realm}".`,
-              //`Authentication challenge:`, wampAuthChallenge
-            );
-          })
-          .onClose((reason, details) => {
-            this._onConnectReject(reason, details);
-            reject();
-          })
-          .open();
+        if (!this.connection.isOnProgress() && !this.isConnectionLost) {
+          this.connection.open();
+        }
       } catch (error) {
         this._onConnectReject('error', error);
         reject();
@@ -105,7 +109,7 @@ export default class BetakillerWampFacade {
   async disconnect() {
     if (this.connection) {
       this.connection.close();
-      this.connection = undefined;
+      //this.connection = undefined;
       this._debugNotice(`Connection closing.`);
     }
   }
@@ -114,6 +118,22 @@ export default class BetakillerWampFacade {
     console.log('reconnecting');
     await this.disconnect();
     await this.connect();
+  }
+
+  /**
+   *
+   * @param {Function} handler
+   */
+  onConnectionLost(handler) {
+    this.onConnectionLostHandlers.push(handler);
+  }
+
+  /**
+   *
+   * @param {Function} handler
+   */
+  onConnectionRestored(handler) {
+    this.onConnectionRestoredHandlers.push(handler);
   }
 
   /**
@@ -143,7 +163,14 @@ export default class BetakillerWampFacade {
     if (typeof this.onOpen === 'function') {
       this.onOpen(this);
     }
-    //this._runRequests();
+
+    // Notify subscribers about connection restored
+    if (this.isConnectionLost) {
+      this.onConnectionRestoredHandlers.forEach((handler) => handler());
+      this.isConnectionLost = false;
+    }
+
+    this._runRequests();
   }
 
   _onConnectReject(reason, details) {
@@ -152,6 +179,9 @@ export default class BetakillerWampFacade {
     var reconnectionState = 'unknown';
     var reconnectionTry = 0;
     var reconnectionDelay = 0;
+
+    var isConnectionLost = reason === 'lost' || reason === 'unreachable';
+
     if (details.hasOwnProperty('reason')) {
       isClosedByClient = this.connection.isDetailsClosedByClient(details);
       detailReason = this.connection.getDetailsReason(details);
@@ -159,6 +189,13 @@ export default class BetakillerWampFacade {
       reconnectionTry = this.connection.getDetailsReconnectionTry(details);
       reconnectionDelay = this.connection.getDetailsReconnectionDelay(details);
     }
+
+    if (isConnectionLost && !this.isConnectionLost) {
+      // Notify subscribers about connection lost
+      this.onConnectionLostHandlers.forEach((handler) => handler());
+      this.isConnectionLost = true;
+    }
+
     if (isClosedByClient) {
       reason = this.reason_closed_by_client;
     }
@@ -167,7 +204,7 @@ export default class BetakillerWampFacade {
       `Connection closed:`,
       `Reason "${reason}".`,
     ];
-    if (isClosedByClient) {
+    if (isClosedByClient || isConnectionLost) {
       this._debugNotice.apply(this, message);
     } else {
       message = message.concat([
@@ -232,17 +269,17 @@ export default class BetakillerWampFacade {
       started: Date.now(),
     };
 
-    await this.connect();
+    //await this.connect();
 
-    //this.requests.push(request);
+    this.requests.push(request);
 
     return new Promise((resolve, reject) => {
       request.resolve = resolve;
       request.reject = reject;
 
-      this._processRequest(request);
+      //this._processRequest(request);
 
-      //this._runRequests();
+      this._runRequests();
     });
   }
 
@@ -256,15 +293,7 @@ export default class BetakillerWampFacade {
     }, timeout);
   }
 
-  _runRequests() {
-    if (!this.isConnected()) {
-      if (this.isConnecting()) {
-        return;
-      }
-
-      return this.connect();
-    }
-
+  async _runRequests() {
     if (this._requestsOnProgress) {
       return;
     }
@@ -272,7 +301,11 @@ export default class BetakillerWampFacade {
     this._requestsOnProgress = true;
 
     // Prevent race conditions on parallel requests
+    // Keep requests during connection loss
     while (this.requests.length > 0) {
+      await this.connect();
+
+      // Do not wait for each request to be processed, run them in parallel
       this._processRequest(this.requests.pop());
     }
 
