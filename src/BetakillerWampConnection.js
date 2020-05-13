@@ -9,10 +9,10 @@ export default class BetakillerWampConnection {
     this.realm         = realm;
     this.authChallenge = authChallenge;
     this.reconnect     = true;
-    this.callbacks     = {
-      'open':  undefined,
-      'close': undefined,
-    };
+
+    this.onOpenHandlers = [];
+    this.onCloseHandlers = [];
+
     this.errors        = {
       'notReady':   'Connection not ready. Use connect() or wait for connection complete.',
       'onProgress': 'Connection on progress.',
@@ -75,12 +75,12 @@ export default class BetakillerWampConnection {
   }
 
   onOpen(callback) {
-    this.callbacks.open = callback;
+    this.onOpenHandlers.push(callback);
     return this;
   }
 
   onClose(callback) {
-    this.callbacks.close = callback;
+    this.onCloseHandlers.push(callback);
     return this;
   }
 
@@ -145,17 +145,14 @@ export default class BetakillerWampConnection {
   _onOpen(session/*, details*/) {
     this.session = session;
     this._markAsReady();
-    if (typeof this.callbacks.open === 'function') {
-      this.callbacks.open(this);
-    }
+    this.onOpenHandlers.forEach(handler => handler(this));
   }
 
   _onClose(reason, details) {
     this._markAsNotReady();
 
-    if (typeof this.callbacks.close === 'function') {
-      this.callbacks.close(reason, details);
-    }
+    this.onCloseHandlers.forEach(handler => handler(this));
+
     // if true then autobahn would not reconnect
     return !this._isReconnectEnabled();
   }
