@@ -151,7 +151,7 @@ export default class BetakillerWampConnection {
   _onClose(reason, details) {
     this._markAsNotReady();
 
-    this.onCloseHandlers.forEach(handler => handler(this));
+    this.onCloseHandlers.forEach(handler => handler(reason, details));
 
     // if true then autobahn would not reconnect
     return !this._isReconnectEnabled();
