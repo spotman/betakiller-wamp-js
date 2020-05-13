@@ -182,7 +182,7 @@ export default class BetakillerWampFacade {
 
     var isConnectionLost = reason === 'lost' || reason === 'unreachable';
 
-    if (details.hasOwnProperty('reason')) {
+    if (details && details.hasOwnProperty('reason')) {
       isClosedByClient = this.connection.isDetailsClosedByClient(details);
       detailReason = this.connection.getDetailsReason(details);
       reconnectionState = this.connection.getDetailsReconnectionState(details);
