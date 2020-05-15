@@ -242,12 +242,26 @@ export default class BetakillerWampFacade {
     await this.connect();
 
     this.connection.getSession().publish(name, data);
+
+    this._debugNotice(
+      `Event "${name}" emitted`,
+      'payload: "' + JSON.stringify(data) + '"',
+    );
   }
 
   async eventSubscribe(name, handler) {
     await this.connect();
 
+    this._debugNotice(
+      `Subscribed to event "${name}"`,
+    );
+
     this.connection.getSession().subscribe(name, (args, kvargs) => {
+      this._debugNotice(
+        `Event "${name}" received`,
+        'payload: "' + JSON.stringify(kvargs) + '"',
+      );
+
       //console.log('Event', args, kwargs, details);
       handler(kvargs);
     });
