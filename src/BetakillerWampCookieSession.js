@@ -19,7 +19,7 @@ export default class BetakillerWampCookieSession {
     setInterval(() => {
       var newSid = this._read();
 
-      if (newSid !== this.sid && handler) {
+      if (newSid && newSid !== this.sid && handler) {
         this.sid = newSid;
         handler(newSid);
       }
