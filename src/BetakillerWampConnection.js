@@ -89,7 +89,7 @@ export default class BetakillerWampConnection {
   }
 
   isReady() {
-    return this.connectionReady;
+    return this.connection && this.connectionReady;
   }
 
   getConnection() {
