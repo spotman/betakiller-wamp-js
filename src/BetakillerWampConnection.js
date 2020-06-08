@@ -5,17 +5,17 @@ import BetakillerWampAuthChallenge from './BetakillerWampAuthChallenge';
 
 export default class BetakillerWampConnection {
   constructor(url, realm, authChallenge = undefined) {
-    this.url           = url;
-    this.realm         = realm;
+    this.url = url;
+    this.realm = realm;
     this.authChallenge = authChallenge;
-    this.reconnect     = true;
+    this.reconnect = true;
 
     this.onOpenHandlers = [];
     this.onCloseHandlers = [];
 
-    this.errors        = {
-      'notReady':   'Connection not ready. Use connect() or wait for connection complete.',
-      'onProgress': 'Connection on progress.',
+    this.errors = {
+      notReady: new Error('Connection not ready. Use connect() or wait for connection complete.'),
+      onProgress: new Error('Connection on progress.'),
     };
     this._markAsNotReady();
   }
@@ -53,8 +53,8 @@ export default class BetakillerWampConnection {
   }
 
   _markAsNotReady() {
-    this.connection      = undefined;
-    this.session         = undefined;
+    this.connection = undefined;
+    this.session = undefined;
     this.connectionReady = false;
   }
 
@@ -94,21 +94,21 @@ export default class BetakillerWampConnection {
 
   getConnection() {
     if (!this.isReady()) {
-      throw new Error(this.errors.notReady);
+      throw this.errors.notReady;
     }
     return this.connection;
   }
 
   getSession() {
     if (!this.isReady()) {
-      throw new Error(this.errors.notReady);
+      throw this.errors.notReady;
     }
     return this.session;
   }
 
   open() {
     if (this.isOnProgress()) {
-      throw new Error(this.errors.onProgress);
+      throw this.errors.onProgress;
     }
     if (this.isReady()) {
       throw new Error('Connection already opened.');
@@ -117,16 +117,16 @@ export default class BetakillerWampConnection {
     this._enableReconnect();
 
     var options = {
-      url:   this.url,
+      url: this.url,
       realm: this.realm,
     };
     if (this.authChallenge instanceof BetakillerWampAuthChallenge) {
       options.authmethods = [this.authChallenge.getMethod()];
-      options.authid      = this.authChallenge.getAuthId();
+      options.authid = this.authChallenge.getAuthId();
       options.onchallenge = (session, method, extra) => this._onChallenge(session, method, extra);
     }
-    this.connection         = new autobahn.Connection(options);
-    this.connection.onopen  = (session, details) => this._onOpen(session, details);
+    this.connection = new autobahn.Connection(options);
+    this.connection.onopen = (session, details) => this._onOpen(session, details);
     this.connection.onclose = (reason, details) => this._onClose(reason, details);
     this.connection.open();
 
