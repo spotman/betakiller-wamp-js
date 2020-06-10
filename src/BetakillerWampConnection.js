@@ -52,6 +52,10 @@ export default class BetakillerWampConnection {
     return details.hasOwnProperty('reason') && details.reason === 'wamp.error.goodbye_and_out';
   }
 
+  isDetailsAuthFailed(details) {
+    return details.hasOwnProperty('reason') && details.reason === 'thruway.error.authentication_failure';
+  }
+
   _markAsNotReady() {
     this.connection = undefined;
     this.session = undefined;

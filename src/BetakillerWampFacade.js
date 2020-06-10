@@ -175,6 +175,7 @@ export default class BetakillerWampFacade {
 
   _onConnectReject(reason, details) {
     var isClosedByClient = false;
+    var isAuthFailed = false;
     var detailReason = 'unknown';
     var reconnectionState = 'unknown';
     var reconnectionTry = 0;
@@ -184,6 +185,7 @@ export default class BetakillerWampFacade {
 
     if (details && details.hasOwnProperty('reason')) {
       isClosedByClient = this.connection.isDetailsClosedByClient(details);
+      isAuthFailed = this.connection.isDetailsAuthFailed(details);
       detailReason = this.connection.getDetailsReason(details);
       reconnectionState = this.connection.getDetailsReconnectionState(details);
       reconnectionTry = this.connection.getDetailsReconnectionTry(details);
@@ -204,7 +206,8 @@ export default class BetakillerWampFacade {
       `Connection closed:`,
       `Reason "${reason}".`,
     ];
-    if (isClosedByClient || isConnectionLost) {
+
+    if (isClosedByClient || isConnectionLost || isAuthFailed) {
       this._debugNotice.apply(this, message);
     } else {
       message = message.concat([
