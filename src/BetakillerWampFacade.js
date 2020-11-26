@@ -259,7 +259,8 @@ export default class BetakillerWampFacade {
       `Subscribed to event "${name}"`,
     );
 
-    this.connection.getSession().subscribe(name, (args, kvargs) => {
+    // Returns Promise with Subscription object
+    return this.connection.getSession().subscribe(name, (args, kvargs) => {
       this._debugNotice(
         `Event "${name}" received`,
         'payload: "' + JSON.stringify(kvargs) + '"',
