@@ -8,10 +8,10 @@ export default class BetakillerWampApiRequest extends BetakillerWampRequest {
     this.procedure = procedure || 'api';
   }
 
-  request(resurce, method, data = undefined) {
+  request(resource, method, data = undefined) {
     data = BetakillerWampApiRequest.normalizeCallData(data);
     data.unshift(method);
-    data.unshift(resurce);
+    data.unshift(resource);
     return super.request(this.procedure, data);
   }
 }
