@@ -305,6 +305,7 @@ export default class BetakillerWampFacade {
     data = BetakillerWampRequest.normalizeCallData(data);
 
     return this.rpcCall(this.options.api_procedure, {
+      source: window.location.href,
       resource,
       method,
       data
